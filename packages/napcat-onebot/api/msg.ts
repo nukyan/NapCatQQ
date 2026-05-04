@@ -1151,17 +1151,12 @@ export class OneBotMsgApi {
 
   private async handleTempGroupMessage (resMsg: OB11Message, msg: RawMessage) {
     resMsg.sub_type = 'group';
+    resMsg.temp_source = 0;
     const ret = await this.core.apis.MsgApi.getTempChatInfo(ChatType.KCHATTYPETEMPC2CFROMGROUP, msg.senderUid);
-    if (ret.result === 0) {
-      // 避免uin:'' uid非空，uid一般不空
-      const member = await this.core.apis.GroupApi.getGroupMember(msg.peerUin, await this.core.apis.UserApi.getUinByUidV2(msg.senderUid));
-      resMsg.group_id = parseInt(ret.tmpChatInfo!.groupCode);
-      resMsg.sender.nickname = member?.nick ?? member?.cardName ?? '临时会话';
-      resMsg.temp_source = 0;
+    if (ret.result === 0 && ret.tmpChatInfo?.groupCode) {
+      resMsg.group_id = parseInt(ret.tmpChatInfo.groupCode);
     } else {
       resMsg.group_id = 284840486;
-      resMsg.temp_source = 0;
-      resMsg.sender.nickname = '临时会话';
     }
   }
 
